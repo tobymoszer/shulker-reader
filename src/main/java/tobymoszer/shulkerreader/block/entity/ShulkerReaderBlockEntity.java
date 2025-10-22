@@ -1,7 +1,10 @@
 package tobymoszer.shulkerreader.block.entity;
 
+import java.util.List;
+
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.ShulkerBoxBlock;
 import net.minecraft.block.entity.LockableContainerBlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -12,14 +15,35 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.text.Text;
 import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.DyeColor;
+import net.minecraft.component.DataComponentTypes;
 
 import tobymoszer.shulkerreader.screen.ShulkerReaderScreenHandler;
 
 public class ShulkerReaderBlockEntity extends LockableContainerBlockEntity implements SidedInventory, ExtendedScreenHandlerFactory<BlockPos> {
 	private static final int[] AVAILABLE_SLOTS = new int[] { 0 };
+	private static final List<DyeColor> COLOR_ORDER = List.of(
+		DyeColor.RED,
+		DyeColor.ORANGE,
+		DyeColor.YELLOW,
+		DyeColor.LIME,
+		DyeColor.GREEN,
+		DyeColor.CYAN,
+		DyeColor.LIGHT_BLUE,
+		DyeColor.BLUE,
+		DyeColor.PURPLE,
+		DyeColor.MAGENTA,
+		DyeColor.PINK,
+		DyeColor.BROWN,
+		DyeColor.BLACK,
+		DyeColor.GRAY,
+		DyeColor.LIGHT_GRAY,
+		DyeColor.WHITE
+	);
+
 	private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(1, ItemStack.EMPTY);
 
 	public ShulkerReaderBlockEntity(BlockPos pos, BlockState state) {
@@ -137,6 +161,14 @@ public class ShulkerReaderBlockEntity extends LockableContainerBlockEntity imple
 	}
 
 	@Override
+	public void markDirty() {
+		super.markDirty();
+		if (this.world != null) {
+			this.world.updateComparators(this.pos, this.getCachedState().getBlock());
+		}
+	}
+
+	@Override
 	public BlockPos getScreenOpeningData(ServerPlayerEntity player) {
 		return this.pos;
 	}
@@ -154,5 +186,50 @@ public class ShulkerReaderBlockEntity extends LockableContainerBlockEntity imple
 			return blockItem.getBlock() instanceof net.minecraft.block.ShulkerBoxBlock;
 		}
 		return false;
+	}
+
+	public int calculateComparatorOutput(boolean powered) {
+		ItemStack stack = inventory.get(0);
+		if (!isShulkerBox(stack)) {
+			return 0;
+		}
+
+		if (!(stack.getItem() instanceof BlockItem blockItem)) {
+			return 0;
+		}
+
+		if (!(blockItem.getBlock() instanceof ShulkerBoxBlock shulkerBoxBlock)) {
+			return 0;
+		}
+
+		DyeColor color = shulkerBoxBlock.getColor();
+		boolean hasCustomName = stack.contains(DataComponentTypes.CUSTOM_NAME);
+
+		if (powered && hasCustomName) {
+			return 15;
+		}
+
+		if (!powered) {
+			if (color == null) {
+				return 1;
+			}
+			int index = COLOR_ORDER.indexOf(color);
+			if (index == -1) {
+				return 0;
+			}
+			if (index <= 13) {
+				return index + 2;
+			}
+			return 0;
+		}
+
+		if (color == DyeColor.LIGHT_GRAY) {
+			return 1;
+		}
+		if (color == DyeColor.WHITE) {
+			return 2;
+		}
+
+		return 0;
 	}
 }

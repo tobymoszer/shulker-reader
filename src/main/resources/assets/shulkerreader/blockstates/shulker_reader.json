@@ -1,17 +1,32 @@
 {
 	"variants": {
-		"facing=north": {
+		"facing=north,powered=false": {
 			"model": "shulkerreader:block/shulker_reader",
 			"y": 180
 		},
-		"facing=south": {
+		"facing=north,powered=true": {
+			"model": "shulkerreader:block/shulker_reader",
+			"y": 180
+		},
+		"facing=south,powered=false": {
 			"model": "shulkerreader:block/shulker_reader"
 		},
-		"facing=west": {
+		"facing=south,powered=true": {
+			"model": "shulkerreader:block/shulker_reader"
+		},
+		"facing=west,powered=false": {
 			"model": "shulkerreader:block/shulker_reader",
 			"y": 90
 		},
-		"facing=east": {
+		"facing=west,powered=true": {
+			"model": "shulkerreader:block/shulker_reader",
+			"y": 90
+		},
+		"facing=east,powered=false": {
+			"model": "shulkerreader:block/shulker_reader",
+			"y": 270
+		},
+		"facing=east,powered=true": {
 			"model": "shulkerreader:block/shulker_reader",
 			"y": 270
 		}

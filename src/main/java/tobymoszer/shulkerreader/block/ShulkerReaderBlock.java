@@ -2,6 +2,7 @@ package tobymoszer.shulkerreader.block;
 
 import com.mojang.serialization.MapCodec;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.BlockWithEntity;
 import net.minecraft.block.entity.BlockEntity;
@@ -18,8 +19,9 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
-import net.minecraft.world.event.GameEvent;
+import net.minecraft.world.block.WireOrientation;
 import net.minecraft.util.ItemScatterer;
+import net.minecraft.world.event.GameEvent;
 
 import tobymoszer.shulkerreader.block.entity.ShulkerReaderBlockEntity;
 
@@ -28,17 +30,20 @@ public class ShulkerReaderBlock extends BlockWithEntity {
 
 	public ShulkerReaderBlock(Settings settings) {
 		super(settings);
-		this.setDefaultState(this.stateManager.getDefaultState().with(Properties.HORIZONTAL_FACING, Direction.NORTH));
+		this.setDefaultState(this.stateManager.getDefaultState().with(Properties.HORIZONTAL_FACING, Direction.NORTH).with(Properties.POWERED, false));
 	}
 
 	@Override
 	protected void appendProperties(StateManager.Builder<net.minecraft.block.Block, BlockState> builder) {
-		builder.add(Properties.HORIZONTAL_FACING);
+		builder.add(Properties.HORIZONTAL_FACING, Properties.POWERED);
 	}
 
 	@Override
 	public BlockState getPlacementState(ItemPlacementContext ctx) {
-		return this.getDefaultState().with(Properties.HORIZONTAL_FACING, ctx.getHorizontalPlayerFacing().getOpposite());
+		boolean powered = ctx.getWorld().isReceivingRedstonePower(ctx.getBlockPos());
+		return this.getDefaultState()
+			.with(Properties.HORIZONTAL_FACING, ctx.getHorizontalPlayerFacing().getOpposite())
+			.with(Properties.POWERED, powered);
 	}
 
 	@Override
@@ -74,12 +79,19 @@ public class ShulkerReaderBlock extends BlockWithEntity {
 
 		return ActionResult.CONSUME;
 	}
+
+	@Override
 	protected boolean hasComparatorOutput(BlockState state) {
 		return true;
 	}
 
+	@Override
 	protected int getComparatorOutput(BlockState state, World world, BlockPos pos) {
-		return net.minecraft.screen.ScreenHandler.calculateComparatorOutput(world.getBlockEntity(pos));
+		BlockEntity blockEntity = world.getBlockEntity(pos);
+		if (blockEntity instanceof ShulkerReaderBlockEntity shulkerReader) {
+			return shulkerReader.calculateComparatorOutput(state.get(Properties.POWERED));
+		}
+		return 0;
 	}
 
 	@Override
@@ -98,5 +110,19 @@ public class ShulkerReaderBlock extends BlockWithEntity {
 		}
 
 		super.onStateReplaced(state, world, pos, moved);
+	}
+
+	@Override
+	protected void neighborUpdate(BlockState state, World world, BlockPos pos, Block block, WireOrientation wireOrientation, boolean notify) {
+		super.neighborUpdate(state, world, pos, block, wireOrientation, notify);
+		if (world.isClient) {
+			return;
+		}
+
+		boolean powered = world.isReceivingRedstonePower(pos);
+		if (powered != state.get(Properties.POWERED)) {
+			world.setBlockState(pos, state.with(Properties.POWERED, powered), Block.NOTIFY_ALL);
+			world.updateComparators(pos, this);
+		}
 	}
 }

@@ -1,6 +1,6 @@
 package tobymoszer.shulkerreader;
 
-import com.google.common.base.Function;
+import java.util.function.Function;
 
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
@@ -13,29 +13,29 @@ import net.minecraft.registry.RegistryKeys;
 import net.minecraft.sound.BlockSoundGroup;
 import net.minecraft.util.Identifier;
 
+import tobymoszer.shulkerreader.block.ShulkerReaderBlock;
+
 public final class ShulkerReaderBlocks {
 	public static final Block SHULKER_READER = register(
 		"shulker_reader",
-		Block::new,
-		AbstractBlock.Settings.create().sounds(BlockSoundGroup.GRASS),
+		ShulkerReaderBlock::new,
+		AbstractBlock.Settings.create().sounds(BlockSoundGroup.STONE).strength(2.0f),
 		true
 	);
 
-	public static void initialize() {}
+	private ShulkerReaderBlocks() {
+	}
+
+	public static void initialize() {
+		// Force class loading for static registration.
+	}
 
 	private static Block register(String name, Function<AbstractBlock.Settings, Block> blockFactory, AbstractBlock.Settings settings, boolean shouldRegisterItem) {
-		// Create a registry key for the block
 		RegistryKey<Block> blockKey = keyOfBlock(name);
-		// Create the block instance
 		Block block = blockFactory.apply(settings.registryKey(blockKey));
 
-		// Sometimes, you may not want to register an item for the block.
-		// Eg: if it's a technical block like `minecraft:moving_piston` or `minecraft:end_gateway`
 		if (shouldRegisterItem) {
-			// Items need to be registered with a different type of registry key, but the ID
-			// can be the same.
 			RegistryKey<Item> itemKey = keyOfItem(name);
-
 			BlockItem blockItem = new BlockItem(block, new Item.Settings().registryKey(itemKey).useBlockPrefixedTranslationKey());
 			Registry.register(Registries.ITEM, itemKey, blockItem);
 		}

@@ -7,6 +7,9 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.item.ItemGroups;
 
+import tobymoszer.shulkerreader.block.entity.ShulkerReaderBlockEntities;
+import tobymoszer.shulkerreader.screen.ShulkerReaderScreenHandlers;
+
 public class ShulkerReader implements ModInitializer {
 	public static final String MOD_ID = "shulkerreader";
 
@@ -22,6 +25,8 @@ public class ShulkerReader implements ModInitializer {
 		// Proceed with mild caution.
 
 		ShulkerReaderBlocks.initialize();
+		ShulkerReaderBlockEntities.initialize();
+		ShulkerReaderScreenHandlers.initialize();
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.REDSTONE).register(entries -> entries.add(ShulkerReaderBlocks.SHULKER_READER));
 		LOGGER.info("Hello Fabric world!");
 	}

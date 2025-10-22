@@ -209,6 +209,10 @@ public class ShulkerReaderBlockEntity extends LockableContainerBlockEntity imple
 			return 15;
 		}
 
+		if (!powered && hasCustomName) {
+			return 0;
+		}
+
 		if (!powered) {
 			if (color == null) {
 				return 1;

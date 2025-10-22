@@ -1,9 +1,11 @@
 package tobymoszer.shulkerreader;
 
-import net.fabricmc.api.ModInitializer;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
+import net.minecraft.item.ItemGroups;
 
 public class ShulkerReader implements ModInitializer {
 	public static final String MOD_ID = "shulkerreader";
@@ -20,6 +22,7 @@ public class ShulkerReader implements ModInitializer {
 		// Proceed with mild caution.
 
 		ShulkerReaderBlocks.initialize();
+		ItemGroupEvents.modifyEntriesEvent(ItemGroups.REDSTONE).register(entries -> entries.add(ShulkerReaderBlocks.SHULKER_READER));
 		LOGGER.info("Hello Fabric world!");
 	}
 }

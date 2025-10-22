@@ -6,7 +6,7 @@
       "conditions": {
         "items": [
           {
-            "items": ["minecraft:shulker_shell"]
+            "items": "minecraft:shulker_shell"
           }
         ]
       }
@@ -19,9 +19,14 @@
     }
   },
   "requirements": [
-    ["has_shulker_shell", "has_recipe"]
+    [
+      "has_shulker_shell",
+      "has_recipe"
+    ]
   ],
   "rewards": {
-    "recipes": ["shulkerreader:shulker_reader"]
+    "recipes": [
+      "shulkerreader:shulker_reader"
+    ]
   }
 }

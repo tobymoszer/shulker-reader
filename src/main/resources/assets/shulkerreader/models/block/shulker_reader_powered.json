@@ -1,6 +1,6 @@
 {
 	"parent": "minecraft:block/cube_all",
 	"textures": {
-		"all": "shulkerreader:block/shulker_reader"
+		"all": "shulkerreader:block/shulker_reader_powered"
 	}
 }

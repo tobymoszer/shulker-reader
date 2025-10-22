@@ -1,0 +1,1 @@
+This is a minecraft 1.21.8 fabric mod. Decompiled game source code is in the game-source directory, and should always be referenced as the source of truth when calling or overriding methods to ensure proper parameter usage.

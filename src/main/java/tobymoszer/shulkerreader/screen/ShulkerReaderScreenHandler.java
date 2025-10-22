@@ -29,14 +29,14 @@ public class ShulkerReaderScreenHandler extends ScreenHandler {
 		this.inventory = inventory;
 		inventory.onOpen(playerInventory.player);
 
-		this.addSlot(new Slot(inventory, 0, 80, 35) {
+		this.addSlot(new Slot(inventory, 0, 80, 20) {
 			@Override
 			public boolean canInsert(ItemStack stack) {
 				return ShulkerReaderBlockEntity.isShulkerBox(stack);
 			}
 		});
 
-		addPlayerInventory(playerInventory);
+		addPlayerSlots(playerInventory, 8, 51);
 	}
 
 	private static Inventory getClientInventory(PlayerInventory playerInventory, BlockPos pos) {
@@ -45,20 +45,6 @@ public class ShulkerReaderScreenHandler extends ScreenHandler {
 			return world.getBlockEntity(pos) instanceof ShulkerReaderBlockEntity blockEntity ? blockEntity : new SimpleInventory(1);
 		}
 		return new SimpleInventory(1);
-	}
-
-	private void addPlayerInventory(PlayerInventory playerInventory) {
-		for (int row = 0; row < 3; ++row) {
-			for (int column = 0; column < 9; ++column) {
-				int x = 8 + column * 18;
-				int y = 84 + row * 18;
-				this.addSlot(new Slot(playerInventory, column + row * 9 + 9, x, y));
-			}
-		}
-
-		for (int hotbarSlot = 0; hotbarSlot < 9; ++hotbarSlot) {
-			this.addSlot(new Slot(playerInventory, hotbarSlot, 8 + hotbarSlot * 18, 142));
-		}
 	}
 
 	@Override
@@ -73,20 +59,26 @@ public class ShulkerReaderScreenHandler extends ScreenHandler {
 		if (slot != null && slot.hasStack()) {
 			ItemStack original = slot.getStack();
 			newStack = original.copy();
+			int blockSlotEnd = 1;
+			int playerInventoryStart = blockSlotEnd;
+			int playerInventoryEnd = playerInventoryStart + 27;
+			int hotbarStart = playerInventoryEnd;
+			int hotbarEnd = hotbarStart + 9;
+
 			if (index == 0) {
-				if (!insertItem(original, 1, 37, true)) {
+				if (!insertItem(original, playerInventoryStart, hotbarEnd, true)) {
 					return ItemStack.EMPTY;
 				}
 			} else if (ShulkerReaderBlockEntity.isShulkerBox(original)) {
-				if (!insertItem(original, 0, 1, false)) {
+				if (!insertItem(original, 0, blockSlotEnd, false)) {
 					return ItemStack.EMPTY;
 				}
-			} else if (index >= 1 && index < 28) {
-				if (!insertItem(original, 28, 37, false)) {
+			} else if (index >= playerInventoryStart && index < playerInventoryEnd) {
+				if (!insertItem(original, hotbarStart, hotbarEnd, false)) {
 					return ItemStack.EMPTY;
 				}
-			} else if (index >= 28 && index < 37) {
-				if (!insertItem(original, 1, 28, false)) {
+			} else if (index >= hotbarStart && index < hotbarEnd) {
+				if (!insertItem(original, playerInventoryStart, playerInventoryEnd, false)) {
 					return ItemStack.EMPTY;
 				}
 			}

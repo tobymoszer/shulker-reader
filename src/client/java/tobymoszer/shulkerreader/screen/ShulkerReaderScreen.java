@@ -6,9 +6,10 @@ import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import tobymoszer.shulkerreader.ShulkerReader;
 
 public class ShulkerReaderScreen extends HandledScreen<ShulkerReaderScreenHandler> {
-	private static final Identifier TEXTURE = Identifier.of("minecraft", "textures/gui/container/hopper.png");
+	private static final Identifier TEXTURE = Identifier.of(ShulkerReader.MOD_ID, "textures/gui/container/shulker_reader.png");
 
 	public ShulkerReaderScreen(ShulkerReaderScreenHandler handler, PlayerInventory inventory, Text title) {
 		super(handler, inventory, title);
@@ -19,7 +20,7 @@ public class ShulkerReaderScreen extends HandledScreen<ShulkerReaderScreenHandle
 	@Override
 	protected void init() {
 		super.init();
-		this.titleX = (this.backgroundWidth - textRenderer.getWidth(title)) / 2;
+		this.titleX = 8;
 	}
 
 	@Override

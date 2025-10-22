@@ -1,0 +1,17 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+        "#R#",
+        "RSR",
+        "#R#"
+    ],
+    "key": {
+        "#": "minecraft:quartz",
+        "R": "minecraft:redstone",
+        "S": "minecraft:shulker_shell"
+    },
+    "result": {
+        "id": "shulkerreader:shulker_reader",
+        "count": 1
+    }
+}

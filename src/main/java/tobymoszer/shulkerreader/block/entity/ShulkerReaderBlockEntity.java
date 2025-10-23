@@ -20,6 +20,7 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.DyeColor;
 import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.ContainerComponent;
 
 import tobymoszer.shulkerreader.screen.ShulkerReaderScreenHandler;
 
@@ -91,7 +92,7 @@ public class ShulkerReaderBlockEntity extends LockableContainerBlockEntity imple
 	protected void readData(net.minecraft.storage.ReadView view) {
 		super.readData(view);
 		Inventories.readData(view, inventory);
-		if (!inventory.isEmpty() && !inventory.get(0).isEmpty() && !isShulkerBox(inventory.get(0))) {
+		if (!inventory.isEmpty() && !inventory.get(0).isEmpty() && !isEmptyShulkerBox(inventory.get(0))) {
 			inventory.set(0, ItemStack.EMPTY);
 		}
 	}
@@ -113,7 +114,7 @@ public class ShulkerReaderBlockEntity extends LockableContainerBlockEntity imple
 
 	@Override
 	public boolean isValid(int slot, ItemStack stack) {
-		return slot == 0 && isShulkerBox(stack);
+		return slot == 0 && isEmptyShulkerBox(stack);
 	}
 
 	@Override
@@ -124,7 +125,7 @@ public class ShulkerReaderBlockEntity extends LockableContainerBlockEntity imple
 	@Override
 	public void setStack(int slot, ItemStack stack) {
 		if (slot == 0) {
-			if (!stack.isEmpty() && !isShulkerBox(stack)) {
+			if (!stack.isEmpty() && !isEmptyShulkerBox(stack)) {
 				return;
 			}
 			ItemStack copy = stack.copy();
@@ -178,7 +179,7 @@ public class ShulkerReaderBlockEntity extends LockableContainerBlockEntity imple
 		return createScreenHandler(syncId, playerInventory);
 	}
 
-	public static boolean isShulkerBox(ItemStack stack) {
+	public static boolean isShulkerBoxItem(ItemStack stack) {
 		if (stack.isEmpty()) {
 			return false;
 		}
@@ -188,9 +189,26 @@ public class ShulkerReaderBlockEntity extends LockableContainerBlockEntity imple
 		return false;
 	}
 
+	public static boolean isEmptyShulkerBox(ItemStack stack) {
+		if (!isShulkerBoxItem(stack)) {
+			return false;
+		}
+
+		if (stack.contains(DataComponentTypes.CONTAINER_LOOT)) {
+			return false;
+		}
+
+		ContainerComponent container = stack.get(DataComponentTypes.CONTAINER);
+		if (container == null) {
+			return true;
+		}
+
+		return container.streamNonEmpty().findAny().isEmpty();
+	}
+
 	public int calculateComparatorOutput(boolean powered) {
 		ItemStack stack = inventory.get(0);
-		if (!isShulkerBox(stack)) {
+		if (!isShulkerBoxItem(stack)) {
 			return 0;
 		}
 

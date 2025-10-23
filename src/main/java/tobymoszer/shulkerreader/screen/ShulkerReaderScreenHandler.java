@@ -32,7 +32,7 @@ public class ShulkerReaderScreenHandler extends ScreenHandler {
 		this.addSlot(new Slot(inventory, 0, 80, 20) {
 			@Override
 			public boolean canInsert(ItemStack stack) {
-				return ShulkerReaderBlockEntity.isShulkerBox(stack);
+				return ShulkerReaderBlockEntity.isEmptyShulkerBox(stack);
 			}
 		});
 
@@ -69,7 +69,7 @@ public class ShulkerReaderScreenHandler extends ScreenHandler {
 				if (!insertItem(original, playerInventoryStart, hotbarEnd, true)) {
 					return ItemStack.EMPTY;
 				}
-			} else if (ShulkerReaderBlockEntity.isShulkerBox(original)) {
+			} else if (ShulkerReaderBlockEntity.isEmptyShulkerBox(original)) {
 				if (!insertItem(original, 0, blockSlotEnd, false)) {
 					return ItemStack.EMPTY;
 				}

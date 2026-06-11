@@ -1,63 +1,63 @@
 package tobymoszer.shulkerreader.screen;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 
 import tobymoszer.shulkerreader.block.entity.ShulkerReaderBlockEntity;
 
-public class ShulkerReaderScreenHandler extends ScreenHandler {
-	private final Inventory inventory;
+public class ShulkerReaderScreenHandler extends AbstractContainerMenu {
+	private final Container inventory;
 
-	public ShulkerReaderScreenHandler(int syncId, PlayerInventory playerInventory, BlockPos pos) {
+	public ShulkerReaderScreenHandler(int syncId, Inventory playerInventory, BlockPos pos) {
 		this(syncId, playerInventory, getClientInventory(playerInventory, pos));
 	}
 
-	public ShulkerReaderScreenHandler(int syncId, PlayerInventory playerInventory, Inventory inventory, BlockPos pos) {
+	public ShulkerReaderScreenHandler(int syncId, Inventory playerInventory, Container inventory, BlockPos pos) {
 		this(syncId, playerInventory, inventory);
 	}
 
-	public ShulkerReaderScreenHandler(int syncId, PlayerInventory playerInventory, Inventory inventory) {
+	public ShulkerReaderScreenHandler(int syncId, Inventory playerInventory, Container inventory) {
 		super(ShulkerReaderScreenHandlers.SHULKER_READER, syncId);
-		checkSize(inventory, 1);
+		checkContainerSize(inventory, 1);
 		this.inventory = inventory;
-		inventory.onOpen(playerInventory.player);
+		inventory.startOpen(playerInventory.player);
 
 		this.addSlot(new Slot(inventory, 0, 80, 20) {
 			@Override
-			public boolean canInsert(ItemStack stack) {
+			public boolean mayPlace(ItemStack stack) {
 				return ShulkerReaderBlockEntity.isEmptyShulkerBox(stack);
 			}
 		});
 
-		addPlayerSlots(playerInventory, 8, 51);
+		addStandardInventorySlots(playerInventory, 8, 51);
 	}
 
-	private static Inventory getClientInventory(PlayerInventory playerInventory, BlockPos pos) {
-		World world = playerInventory.player.getWorld();
-		if (world != null) {
-			return world.getBlockEntity(pos) instanceof ShulkerReaderBlockEntity blockEntity ? blockEntity : new SimpleInventory(1);
+	private static Container getClientInventory(Inventory playerInventory, BlockPos pos) {
+		Level level = playerInventory.player.level();
+		if (level != null) {
+			return level.getBlockEntity(pos) instanceof ShulkerReaderBlockEntity blockEntity ? blockEntity : new SimpleContainer(1);
 		}
-		return new SimpleInventory(1);
+		return new SimpleContainer(1);
 	}
 
 	@Override
-	public boolean canUse(PlayerEntity player) {
-		return this.inventory.canPlayerUse(player);
+	public boolean stillValid(Player player) {
+		return this.inventory.stillValid(player);
 	}
 
 	@Override
-	public ItemStack quickMove(PlayerEntity player, int index) {
+	public ItemStack quickMoveStack(Player player, int index) {
 		ItemStack newStack = ItemStack.EMPTY;
 		Slot slot = this.slots.get(index);
-		if (slot != null && slot.hasStack()) {
-			ItemStack original = slot.getStack();
+		if (slot != null && slot.hasItem()) {
+			ItemStack original = slot.getItem();
 			newStack = original.copy();
 			int blockSlotEnd = 1;
 			int playerInventoryStart = blockSlotEnd;
@@ -66,27 +66,27 @@ public class ShulkerReaderScreenHandler extends ScreenHandler {
 			int hotbarEnd = hotbarStart + 9;
 
 			if (index == 0) {
-				if (!insertItem(original, playerInventoryStart, hotbarEnd, true)) {
+				if (!moveItemStackTo(original, playerInventoryStart, hotbarEnd, true)) {
 					return ItemStack.EMPTY;
 				}
 			} else if (ShulkerReaderBlockEntity.isEmptyShulkerBox(original)) {
-				if (!insertItem(original, 0, blockSlotEnd, false)) {
+				if (!moveItemStackTo(original, 0, blockSlotEnd, false)) {
 					return ItemStack.EMPTY;
 				}
 			} else if (index >= playerInventoryStart && index < playerInventoryEnd) {
-				if (!insertItem(original, hotbarStart, hotbarEnd, false)) {
+				if (!moveItemStackTo(original, hotbarStart, hotbarEnd, false)) {
 					return ItemStack.EMPTY;
 				}
 			} else if (index >= hotbarStart && index < hotbarEnd) {
-				if (!insertItem(original, playerInventoryStart, playerInventoryEnd, false)) {
+				if (!moveItemStackTo(original, playerInventoryStart, playerInventoryEnd, false)) {
 					return ItemStack.EMPTY;
 				}
 			}
 
 			if (original.isEmpty()) {
-				slot.setStack(ItemStack.EMPTY);
+				slot.set(ItemStack.EMPTY);
 			} else {
-				slot.markDirty();
+				slot.setChanged();
 			}
 		}
 
@@ -94,8 +94,8 @@ public class ShulkerReaderScreenHandler extends ScreenHandler {
 	}
 
 	@Override
-	public void onClosed(PlayerEntity player) {
-		super.onClosed(player);
-		this.inventory.onClose(player);
+	public void removed(Player player) {
+		super.removed(player);
+		this.inventory.stopOpen(player);
 	}
 }

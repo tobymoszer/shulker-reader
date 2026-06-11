@@ -2,127 +2,126 @@ package tobymoszer.shulkerreader.block;
 
 import com.mojang.serialization.MapCodec;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.BlockWithEntity;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.screen.NamedScreenHandlerFactory;
-import net.minecraft.state.StateManager;
-import net.minecraft.state.property.Properties;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.BlockMirror;
-import net.minecraft.util.BlockRotation;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.World;
-import net.minecraft.world.block.WireOrientation;
-import net.minecraft.util.ItemScatterer;
-import net.minecraft.world.event.GameEvent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.Containers;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.level.redstone.Orientation;
+import net.minecraft.world.phys.BlockHitResult;
 
 import tobymoszer.shulkerreader.block.entity.ShulkerReaderBlockEntity;
 
-public class ShulkerReaderBlock extends BlockWithEntity {
-	public static final MapCodec<ShulkerReaderBlock> CODEC = createCodec(ShulkerReaderBlock::new);
+public class ShulkerReaderBlock extends BaseEntityBlock {
+	public static final MapCodec<ShulkerReaderBlock> CODEC = simpleCodec(ShulkerReaderBlock::new);
 
-	public ShulkerReaderBlock(Settings settings) {
-		super(settings);
-		this.setDefaultState(this.stateManager.getDefaultState().with(Properties.HORIZONTAL_FACING, Direction.NORTH).with(Properties.POWERED, false));
+	public ShulkerReaderBlock(Properties properties) {
+		super(properties);
+		this.registerDefaultState(this.stateDefinition.any()
+			.setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH)
+			.setValue(BlockStateProperties.POWERED, false));
 	}
 
 	@Override
-	protected void appendProperties(StateManager.Builder<net.minecraft.block.Block, BlockState> builder) {
-		builder.add(Properties.HORIZONTAL_FACING, Properties.POWERED);
+	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+		builder.add(BlockStateProperties.HORIZONTAL_FACING, BlockStateProperties.POWERED);
 	}
 
 	@Override
-	public BlockState getPlacementState(ItemPlacementContext ctx) {
-		boolean powered = ctx.getWorld().isReceivingRedstonePower(ctx.getBlockPos());
-		return this.getDefaultState()
-			.with(Properties.HORIZONTAL_FACING, ctx.getHorizontalPlayerFacing().getOpposite())
-			.with(Properties.POWERED, powered);
+	public BlockState getStateForPlacement(BlockPlaceContext context) {
+		boolean powered = context.getLevel().hasNeighborSignal(context.getClickedPos());
+		return this.defaultBlockState()
+			.setValue(BlockStateProperties.HORIZONTAL_FACING, context.getHorizontalDirection().getOpposite())
+			.setValue(BlockStateProperties.POWERED, powered);
 	}
 
 	@Override
-	protected MapCodec<? extends BlockWithEntity> getCodec() {
+	protected MapCodec<? extends BaseEntityBlock> codec() {
 		return CODEC;
 	}
 
 	@Override
-	public BlockState rotate(BlockState state, BlockRotation rotation) {
-		return state.with(Properties.HORIZONTAL_FACING, rotation.rotate(state.get(Properties.HORIZONTAL_FACING)));
+	protected BlockState rotate(BlockState state, Rotation rotation) {
+		return state.setValue(BlockStateProperties.HORIZONTAL_FACING, rotation.rotate(state.getValue(BlockStateProperties.HORIZONTAL_FACING)));
 	}
 
 	@Override
-	public BlockState mirror(BlockState state, BlockMirror mirror) {
-		return state.rotate(mirror.getRotation(state.get(Properties.HORIZONTAL_FACING)));
+	protected BlockState mirror(BlockState state, Mirror mirror) {
+		return state.rotate(mirror.getRotation(state.getValue(BlockStateProperties.HORIZONTAL_FACING)));
 	}
 
 	@Override
-	public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
+	public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
 		return new ShulkerReaderBlockEntity(pos, state);
 	}
 
 	@Override
-	protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-		if (world.isClient) {
-			return ActionResult.SUCCESS;
+	protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+		if (level.isClientSide()) {
+			return InteractionResult.SUCCESS;
 		}
 
-		NamedScreenHandlerFactory factory = state.createScreenHandlerFactory(world, pos);
-		if (factory != null && player.openHandledScreen(factory) != null) {
-			world.emitGameEvent(player, GameEvent.CONTAINER_OPEN, pos);
+		MenuProvider factory = state.getMenuProvider(level, pos);
+		if (factory != null && player.openMenu(factory).isPresent()) {
+			level.gameEvent(player, GameEvent.CONTAINER_OPEN, pos);
 		}
 
-		return ActionResult.CONSUME;
+		return InteractionResult.CONSUME;
 	}
 
 	@Override
-	protected boolean hasComparatorOutput(BlockState state) {
+	protected boolean hasAnalogOutputSignal(BlockState state) {
 		return true;
 	}
 
 	@Override
-	protected int getComparatorOutput(BlockState state, World world, BlockPos pos) {
-		BlockEntity blockEntity = world.getBlockEntity(pos);
+	protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos, Direction direction) {
+		BlockEntity blockEntity = level.getBlockEntity(pos);
 		if (blockEntity instanceof ShulkerReaderBlockEntity shulkerReader) {
-			return shulkerReader.calculateComparatorOutput(state.get(Properties.POWERED));
+			return shulkerReader.calculateComparatorOutput(state.getValue(BlockStateProperties.POWERED));
 		}
 		return 0;
 	}
 
 	@Override
-	protected void onStateReplaced(BlockState state, ServerWorld world, BlockPos pos, boolean moved) {
+	protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean moved) {
 		if (moved) {
 			return;
 		}
 
-		if (!world.getBlockState(pos).isOf(state.getBlock())) {
-			BlockEntity blockEntity = world.getBlockEntity(pos);
-			if (blockEntity instanceof ShulkerReaderBlockEntity shulkerReader) {
-				ItemScatterer.spawn(world, pos, shulkerReader);
-				world.updateComparators(pos, this);
-			}
-			world.removeBlockEntity(pos);
+		BlockEntity blockEntity = level.getBlockEntity(pos);
+		if (blockEntity instanceof ShulkerReaderBlockEntity shulkerReader) {
+			Containers.dropContents(level, pos, shulkerReader);
+			level.updateNeighbourForOutputSignal(pos, this);
 		}
 
-		super.onStateReplaced(state, world, pos, moved);
+		super.affectNeighborsAfterRemoval(state, level, pos, moved);
 	}
 
 	@Override
-	protected void neighborUpdate(BlockState state, World world, BlockPos pos, Block block, WireOrientation wireOrientation, boolean notify) {
-		super.neighborUpdate(state, world, pos, block, wireOrientation, notify);
-		if (world.isClient) {
+	protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, Orientation orientation, boolean movedByPiston) {
+		super.neighborChanged(state, level, pos, block, orientation, movedByPiston);
+		if (level.isClientSide()) {
 			return;
 		}
 
-		boolean powered = world.isReceivingRedstonePower(pos);
-		if (powered != state.get(Properties.POWERED)) {
-			world.setBlockState(pos, state.with(Properties.POWERED, powered), Block.NOTIFY_ALL);
-			world.updateComparators(pos, this);
+		boolean powered = level.hasNeighborSignal(pos);
+		if (powered != state.getValue(BlockStateProperties.POWERED)) {
+			level.setBlock(pos, state.setValue(BlockStateProperties.POWERED, powered), Block.UPDATE_ALL);
+			level.updateNeighbourForOutputSignal(pos, this);
 		}
 	}
 }

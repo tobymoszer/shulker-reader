@@ -1,19 +1,19 @@
 package tobymoszer.shulkerreader.screen;
 
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.screen.ScreenHandlerType;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuType;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.inventory.MenuType;
 
 import tobymoszer.shulkerreader.ShulkerReader;
 
 public final class ShulkerReaderScreenHandlers {
-	public static final ScreenHandlerType<ShulkerReaderScreenHandler> SHULKER_READER = Registry.register(
-		Registries.SCREEN_HANDLER,
-		Identifier.of(ShulkerReader.MOD_ID, "shulker_reader"),
-		new ExtendedScreenHandlerType<>(ShulkerReaderScreenHandler::new, BlockPos.PACKET_CODEC)
+	public static final MenuType<ShulkerReaderScreenHandler> SHULKER_READER = Registry.register(
+		BuiltInRegistries.MENU,
+		Identifier.fromNamespaceAndPath(ShulkerReader.MOD_ID, "shulker_reader"),
+		new ExtendedMenuType<>(ShulkerReaderScreenHandler::new, BlockPos.STREAM_CODEC)
 	);
 
 	private ShulkerReaderScreenHandlers() {

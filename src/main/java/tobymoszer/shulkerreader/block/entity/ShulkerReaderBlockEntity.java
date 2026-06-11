@@ -2,29 +2,31 @@ package tobymoszer.shulkerreader.block.entity;
 
 import java.util.List;
 
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.ShulkerBoxBlock;
-import net.minecraft.block.entity.LockableContainerBlockEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventories;
-import net.minecraft.inventory.SidedInventory;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.text.Text;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.DyeColor;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.ContainerComponent;
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuProvider;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.WorldlyContainer;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemContainerContents;
+import net.minecraft.world.level.block.ShulkerBoxBlock;
+import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import tobymoszer.shulkerreader.screen.ShulkerReaderScreenHandler;
 
-public class ShulkerReaderBlockEntity extends LockableContainerBlockEntity implements SidedInventory, ExtendedScreenHandlerFactory<BlockPos> {
+public class ShulkerReaderBlockEntity extends BaseContainerBlockEntity implements WorldlyContainer, ExtendedMenuProvider<BlockPos> {
 	private static final int[] AVAILABLE_SLOTS = new int[] { 0 };
 	private static final List<DyeColor> COLOR_ORDER = List.of(
 		DyeColor.RED,
@@ -45,138 +47,133 @@ public class ShulkerReaderBlockEntity extends LockableContainerBlockEntity imple
 		DyeColor.WHITE
 	);
 
-	private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(1, ItemStack.EMPTY);
+	private final NonNullList<ItemStack> inventory = NonNullList.withSize(1, ItemStack.EMPTY);
 
 	public ShulkerReaderBlockEntity(BlockPos pos, BlockState state) {
 		super(ShulkerReaderBlockEntities.SHULKER_READER, pos, state);
 	}
 
 	@Override
-	protected Text getContainerName() {
-		return Text.translatable("container.shulkerreader.shulker_reader");
+	protected Component getDefaultName() {
+		return Component.translatable("container.shulkerreader.shulker_reader");
 	}
 
 	@Override
-	protected DefaultedList<ItemStack> getHeldStacks() {
+	protected NonNullList<ItemStack> getItems() {
 		return inventory;
 	}
 
 	@Override
-	protected void setHeldStacks(DefaultedList<ItemStack> stacks) {
+	protected void setItems(NonNullList<ItemStack> stacks) {
 		for (int i = 0; i < inventory.size(); i++) {
 			inventory.set(i, ItemStack.EMPTY);
 		}
 		for (int i = 0; i < stacks.size() && i < inventory.size(); i++) {
 			inventory.set(i, stacks.get(i));
 		}
-		markDirty();
+		setChanged();
 	}
 
 	@Override
-	public int size() {
+	public int getContainerSize() {
 		return inventory.size();
 	}
 
 	@Override
-	protected ScreenHandler createScreenHandler(int syncId, PlayerInventory playerInventory) {
-		return new ShulkerReaderScreenHandler(syncId, playerInventory, this, this.pos);
+	protected AbstractContainerMenu createMenu(int syncId, Inventory playerInventory) {
+		return new ShulkerReaderScreenHandler(syncId, playerInventory, this, this.worldPosition);
 	}
 
 	@Override
-	protected void writeData(net.minecraft.storage.WriteView view) {
-		super.writeData(view);
-		Inventories.writeData(view, inventory);
+	protected void saveAdditional(ValueOutput output) {
+		super.saveAdditional(output);
+		ContainerHelper.saveAllItems(output, inventory);
 	}
 
 	@Override
-	protected void readData(net.minecraft.storage.ReadView view) {
-		super.readData(view);
-		Inventories.readData(view, inventory);
+	protected void loadAdditional(ValueInput input) {
+		super.loadAdditional(input);
+		ContainerHelper.loadAllItems(input, inventory);
 		if (!inventory.isEmpty() && !inventory.get(0).isEmpty() && !isEmptyShulkerBox(inventory.get(0))) {
 			inventory.set(0, ItemStack.EMPTY);
 		}
 	}
 
 	@Override
-	public int[] getAvailableSlots(Direction side) {
+	public int[] getSlotsForFace(Direction side) {
 		return AVAILABLE_SLOTS;
 	}
 
 	@Override
-	public boolean canInsert(int slot, ItemStack stack, Direction dir) {
-		return isValid(slot, stack);
+	public boolean canPlaceItemThroughFace(int slot, ItemStack stack, Direction dir) {
+		return canPlaceItem(slot, stack);
 	}
 
 	@Override
-	public boolean canExtract(int slot, ItemStack stack, Direction dir) {
+	public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction dir) {
 		return true;
 	}
 
 	@Override
-	public boolean isValid(int slot, ItemStack stack) {
+	public boolean canPlaceItem(int slot, ItemStack stack) {
 		return slot == 0 && isEmptyShulkerBox(stack);
 	}
 
 	@Override
-	public int getMaxCountPerStack() {
+	public int getMaxStackSize() {
 		return 1;
 	}
 
 	@Override
-	public void setStack(int slot, ItemStack stack) {
+	public void setItem(int slot, ItemStack stack) {
 		if (slot == 0) {
 			if (!stack.isEmpty() && !isEmptyShulkerBox(stack)) {
 				return;
 			}
 			ItemStack copy = stack.copy();
-			if (copy.getCount() > getMaxCountPerStack()) {
-				copy.setCount(getMaxCountPerStack());
+			if (copy.getCount() > getMaxStackSize()) {
+				copy.setCount(getMaxStackSize());
 			}
 			inventory.set(slot, copy);
-			markDirty();
+			setChanged();
 		}
 	}
 
 	@Override
-	public ItemStack removeStack(int slot, int amount) {
-		ItemStack result = super.removeStack(slot, amount);
+	public ItemStack removeItem(int slot, int amount) {
+		ItemStack result = super.removeItem(slot, amount);
 		if (!result.isEmpty()) {
-			markDirty();
+			setChanged();
 		}
 		return result;
 	}
 
 	@Override
-	public ItemStack removeStack(int slot) {
-		ItemStack result = super.removeStack(slot);
+	public ItemStack removeItemNoUpdate(int slot) {
+		ItemStack result = super.removeItemNoUpdate(slot);
 		if (!result.isEmpty()) {
-			markDirty();
+			setChanged();
 		}
 		return result;
 	}
 
 	@Override
-	public void clear() {
+	public void clearContent() {
 		inventory.clear();
-		markDirty();
+		setChanged();
 	}
 
 	@Override
-	public void markDirty() {
-		super.markDirty();
-		if (this.world != null) {
-			this.world.updateComparators(this.pos, this.getCachedState().getBlock());
+	public void setChanged() {
+		super.setChanged();
+		if (this.level != null) {
+			this.level.updateNeighbourForOutputSignal(this.worldPosition, this.getBlockState().getBlock());
 		}
 	}
 
 	@Override
-	public BlockPos getScreenOpeningData(ServerPlayerEntity player) {
-		return this.pos;
-	}
-
-	@Override
-	public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
-		return createScreenHandler(syncId, playerInventory);
+	public BlockPos getScreenOpeningData(ServerPlayer player) {
+		return this.worldPosition;
 	}
 
 	public static boolean isShulkerBoxItem(ItemStack stack) {
@@ -184,7 +181,7 @@ public class ShulkerReaderBlockEntity extends LockableContainerBlockEntity imple
 			return false;
 		}
 		if (stack.getItem() instanceof BlockItem blockItem) {
-			return blockItem.getBlock() instanceof net.minecraft.block.ShulkerBoxBlock;
+			return blockItem.getBlock() instanceof ShulkerBoxBlock;
 		}
 		return false;
 	}
@@ -194,16 +191,16 @@ public class ShulkerReaderBlockEntity extends LockableContainerBlockEntity imple
 			return false;
 		}
 
-		if (stack.contains(DataComponentTypes.CONTAINER_LOOT)) {
+		if (stack.has(DataComponents.CONTAINER_LOOT)) {
 			return false;
 		}
 
-		ContainerComponent container = stack.get(DataComponentTypes.CONTAINER);
+		ItemContainerContents container = stack.get(DataComponents.CONTAINER);
 		if (container == null) {
 			return true;
 		}
 
-		return container.streamNonEmpty().findAny().isEmpty();
+		return container.nonEmptyItemCopyStream().findAny().isEmpty();
 	}
 
 	public int calculateComparatorOutput(boolean powered) {
@@ -221,7 +218,7 @@ public class ShulkerReaderBlockEntity extends LockableContainerBlockEntity imple
 		}
 
 		DyeColor color = shulkerBoxBlock.getColor();
-		boolean hasCustomName = stack.contains(DataComponentTypes.CUSTOM_NAME);
+		boolean hasCustomName = stack.has(DataComponents.CUSTOM_NAME);
 
 		if (powered && hasCustomName) {
 			return 15;

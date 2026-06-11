@@ -1,6 +1,8 @@
 {
-	"parent": "minecraft:block/cube_all",
+	"parent": "minecraft:block/cube_bottom_top",
 	"textures": {
-		"all": "shulkerreader:block/shulker_reader"
+		"side": "shulkerreader:block/shulker_reader_side",
+		"top": "shulkerreader:block/shulker_reader_top",
+		"bottom": "shulkerreader:block/shulker_reader_bottom"
 	}
 }

@@ -21,7 +21,10 @@ public final class ShulkerReaderBlocks {
 	public static final Block SHULKER_READER = register(
 		"shulker_reader",
 		ShulkerReaderBlock::new,
-		BlockBehaviour.Properties.of().sound(SoundType.STONE).strength(2.0f),
+		BlockBehaviour.Properties.of()
+			.sound(SoundType.STONE)
+			.strength(2.0f)
+			.requiresCorrectToolForDrops(),
 		true
 	);
 

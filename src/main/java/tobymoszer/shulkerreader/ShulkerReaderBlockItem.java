@@ -1,6 +1,7 @@
 package tobymoszer.shulkerreader;
 
 import eu.pb4.polymer.core.api.item.PolymerBlockItem;
+import eu.pb4.polymer.core.api.utils.PolymerClientDecoded;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 import net.minecraft.core.HolderLookup;
@@ -9,7 +10,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 
-public final class ShulkerReaderBlockItem extends PolymerBlockItem {
+public final class ShulkerReaderBlockItem extends PolymerBlockItem implements PolymerClientDecoded {
 	public ShulkerReaderBlockItem(Block block, Properties properties) {
 		super(block, properties, Items.TARGET, true);
 	}

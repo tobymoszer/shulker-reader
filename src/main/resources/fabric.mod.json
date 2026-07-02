@@ -18,6 +18,9 @@
 	"entrypoints": {
 		"main": [
 			"tobymoszer.shulkerreader.ShulkerReader"
+		],
+		"client": [
+			"tobymoszer.shulkerreader.ShulkerReaderClient"
 		]
 	},
 	"depends": {

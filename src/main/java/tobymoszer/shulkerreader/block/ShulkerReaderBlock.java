@@ -5,6 +5,7 @@ import eu.pb4.polymer.blocks.api.BlockModelType;
 import eu.pb4.polymer.blocks.api.PolymerBlockModel;
 import eu.pb4.polymer.blocks.api.PolymerBlockResourceUtils;
 import eu.pb4.polymer.blocks.api.PolymerTexturedBlock;
+import eu.pb4.polymer.core.api.utils.PolymerClientDecoded;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 
@@ -12,6 +13,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
@@ -33,8 +35,9 @@ import net.minecraft.world.phys.BlockHitResult;
 
 import tobymoszer.shulkerreader.ShulkerReader;
 import tobymoszer.shulkerreader.block.entity.ShulkerReaderBlockEntity;
+import tobymoszer.shulkerreader.network.ShulkerReaderNetworking;
 
-public class ShulkerReaderBlock extends BaseEntityBlock implements PolymerTexturedBlock {
+public class ShulkerReaderBlock extends BaseEntityBlock implements PolymerTexturedBlock, PolymerClientDecoded {
 	public static final MapCodec<ShulkerReaderBlock> CODEC = simpleCodec(ShulkerReaderBlock::new);
 	private static final Identifier UNPOWERED_MODEL = Identifier.fromNamespaceAndPath(
 		ShulkerReader.MOD_ID,
@@ -116,6 +119,11 @@ public class ShulkerReaderBlock extends BaseEntityBlock implements PolymerTextur
 		}
 
 		MenuProvider factory = state.getMenuProvider(level, pos);
+		if (factory instanceof ShulkerReaderBlockEntity blockEntity
+			&& player instanceof ServerPlayer serverPlayer
+			&& ShulkerReaderNetworking.supportsNativeClient(serverPlayer)) {
+			factory = blockEntity.getNativeMenuProvider();
+		}
 		if (factory != null && player.openMenu(factory).isPresent()) {
 			level.gameEvent(player, GameEvent.CONTAINER_OPEN, pos);
 		}

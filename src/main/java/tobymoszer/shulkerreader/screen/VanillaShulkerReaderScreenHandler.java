@@ -6,47 +6,59 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 
 import tobymoszer.shulkerreader.block.entity.ShulkerReaderBlockEntity;
 
-public class ShulkerReaderScreenHandler extends AbstractContainerMenu {
+public class VanillaShulkerReaderScreenHandler extends AbstractContainerMenu {
+	private static final int VANILLA_HOPPER_SLOT_COUNT = 5;
+	private static final int READER_SLOT = 2;
 	private final Container inventory;
 
-	public ShulkerReaderScreenHandler(int syncId, Inventory playerInventory, BlockPos pos) {
-		this(syncId, playerInventory, getClientInventory(playerInventory, pos));
-	}
-
-	public ShulkerReaderScreenHandler(int syncId, Inventory playerInventory, Container inventory, BlockPos pos) {
+	public VanillaShulkerReaderScreenHandler(int syncId, Inventory playerInventory, Container inventory, BlockPos pos) {
 		this(syncId, playerInventory, inventory);
 	}
 
-	public ShulkerReaderScreenHandler(int syncId, Inventory playerInventory, Container inventory) {
-		super(ShulkerReaderScreenHandlers.SHULKER_READER, syncId);
+	public VanillaShulkerReaderScreenHandler(int syncId, Inventory playerInventory, Container inventory) {
+		super(MenuType.HOPPER, syncId);
 		checkContainerSize(inventory, 1);
 		this.inventory = inventory;
 		inventory.startOpen(playerInventory.player);
 
-		this.addSlot(new Slot(inventory, 0, 80, 20) {
-			@Override
-			public boolean mayPlace(ItemStack stack) {
-				return ShulkerReaderBlockEntity.isEmptyShulkerBox(stack);
+		SimpleContainer fillerSlots = new SimpleContainer(VANILLA_HOPPER_SLOT_COUNT - 1);
+		int fillerIndex = 0;
+		for (int index = 0; index < VANILLA_HOPPER_SLOT_COUNT; index++) {
+			int x = 44 + index * 18;
+			if (index == READER_SLOT) {
+				this.addSlot(new Slot(inventory, 0, x, 20) {
+					@Override
+					public boolean mayPlace(ItemStack stack) {
+						return ShulkerReaderBlockEntity.isEmptyShulkerBox(stack);
+					}
+				});
+			} else {
+				this.addSlot(new Slot(fillerSlots, fillerIndex++, x, 20) {
+					@Override
+					public boolean mayPlace(ItemStack stack) {
+						return false;
+					}
+
+					@Override
+					public boolean mayPickup(Player player) {
+						return false;
+					}
+
+					@Override
+					public boolean isActive() {
+						return false;
+					}
+				});
 			}
-		});
+		}
 
 		addStandardInventorySlots(playerInventory, 8, 51);
-	}
-
-	private static Container getClientInventory(Inventory playerInventory, BlockPos pos) {
-		Level level = playerInventory.player.level();
-		if (level != null) {
-			return level.getBlockEntity(pos) instanceof ShulkerReaderBlockEntity blockEntity
-				? blockEntity
-				: new SimpleContainer(1);
-		}
-		return new SimpleContainer(1);
 	}
 
 	@Override
@@ -61,18 +73,18 @@ public class ShulkerReaderScreenHandler extends AbstractContainerMenu {
 		if (slot != null && slot.hasItem()) {
 			ItemStack original = slot.getItem();
 			newStack = original.copy();
-			int blockSlotEnd = 1;
+			int blockSlotEnd = VANILLA_HOPPER_SLOT_COUNT;
 			int playerInventoryStart = blockSlotEnd;
 			int playerInventoryEnd = playerInventoryStart + 27;
 			int hotbarStart = playerInventoryEnd;
 			int hotbarEnd = hotbarStart + 9;
 
-			if (index == 0) {
+			if (index == READER_SLOT) {
 				if (!moveItemStackTo(original, playerInventoryStart, hotbarEnd, true)) {
 					return ItemStack.EMPTY;
 				}
 			} else if (ShulkerReaderBlockEntity.isEmptyShulkerBox(original)) {
-				if (!moveItemStackTo(original, 0, blockSlotEnd, false)) {
+				if (!moveItemStackTo(original, READER_SLOT, READER_SLOT + 1, false)) {
 					return ItemStack.EMPTY;
 				}
 			} else if (index >= playerInventoryStart && index < playerInventoryEnd) {

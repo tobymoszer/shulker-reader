@@ -18,9 +18,12 @@ repositories {
 }
 
 loom {
+	splitEnvironmentSourceSets()
+
 	mods {
 		"shulkerreader" {
 			sourceSet sourceSets.main
+			sourceSet sourceSets.client
 		}
 	}
 

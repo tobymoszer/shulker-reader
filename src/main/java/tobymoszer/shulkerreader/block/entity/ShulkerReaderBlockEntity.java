@@ -7,6 +7,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuProvider;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -23,6 +25,7 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
 import tobymoszer.shulkerreader.screen.ShulkerReaderScreenHandler;
+import tobymoszer.shulkerreader.screen.VanillaShulkerReaderScreenHandler;
 
 public class ShulkerReaderBlockEntity extends BaseContainerBlockEntity implements WorldlyContainer {
 	private static final int[] AVAILABLE_SLOTS = new int[] { 0 };
@@ -79,7 +82,31 @@ public class ShulkerReaderBlockEntity extends BaseContainerBlockEntity implement
 
 	@Override
 	protected AbstractContainerMenu createMenu(int syncId, Inventory playerInventory) {
-		return new ShulkerReaderScreenHandler(syncId, playerInventory, this, this.worldPosition);
+		return new VanillaShulkerReaderScreenHandler(syncId, playerInventory, this, this.worldPosition);
+	}
+
+	public ExtendedMenuProvider<BlockPos> getNativeMenuProvider() {
+		return new ExtendedMenuProvider<>() {
+			@Override
+			public BlockPos getScreenOpeningData(ServerPlayer player) {
+				return ShulkerReaderBlockEntity.this.worldPosition;
+			}
+
+			@Override
+			public AbstractContainerMenu createMenu(int syncId, Inventory playerInventory, Player player) {
+				return new ShulkerReaderScreenHandler(
+					syncId,
+					playerInventory,
+					ShulkerReaderBlockEntity.this,
+					ShulkerReaderBlockEntity.this.worldPosition
+				);
+			}
+
+			@Override
+			public Component getDisplayName() {
+				return ShulkerReaderBlockEntity.this.getDisplayName();
+			}
+		};
 	}
 
 	@Override

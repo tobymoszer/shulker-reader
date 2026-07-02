@@ -13,12 +13,15 @@ import java.nio.file.StandardOpenOption;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
 
 import tobymoszer.shulkerreader.block.entity.ShulkerReaderBlockEntities;
+import tobymoszer.shulkerreader.network.ShulkerReaderNetworking;
+import tobymoszer.shulkerreader.screen.ShulkerReaderScreenHandlers;
 
 public class ShulkerReader implements ModInitializer {
 	public static final String MOD_ID = "shulkerreader";
@@ -38,6 +41,11 @@ public class ShulkerReader implements ModInitializer {
 		PolymerResourcePackUtils.addModAssets(MOD_ID);
 		ShulkerReaderBlocks.initialize();
 		ShulkerReaderBlockEntities.initialize();
+		ShulkerReaderScreenHandlers.initialize();
+		PayloadTypeRegistry.clientboundPlay().register(
+			ShulkerReaderNetworking.NativeClientPayload.TYPE,
+			ShulkerReaderNetworking.NativeClientPayload.CODEC
+		);
 		CreativeModeTabEvents.modifyOutputEvent(REDSTONE_BLOCKS_TAB).register(entries -> entries.accept(ShulkerReaderBlocks.SHULKER_READER));
 		LOGGER.info("Shulker Reader initialized with vanilla-client compatibility");
 	}

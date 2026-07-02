@@ -15,7 +15,8 @@ The server requires:
 - Java 25
 
 Clients only need vanilla Minecraft 26.1.2. Fabric, Fabric API, and Shulker
-Reader do not need to be installed client-side.
+Reader do not need to be installed client-side. Installing the mod on the
+client preserves the native Shulker Reader block, item, and inventory screen.
 
 ## Signals
 
@@ -57,10 +58,11 @@ Reader JAR in its `mods` folder. The server automatically generates and hosts
 an optional resource pack containing the custom block and item models. The
 required Polymer components are bundled in the mod JAR.
 
-Clients that accept the pack see the Shulker Reader's custom appearance.
-Clients that decline it can still connect and use the block, which appears as a
-Target block and item instead. The inventory uses Minecraft's standard hopper
-screen so it works without client-side code.
+Vanilla clients that accept the pack see the Shulker Reader's custom
+appearance. Vanilla clients that decline it can still connect and use the
+block, which appears as a Target block and item instead. Vanilla clients use
+Minecraft's standard hopper screen, while clients with the mod installed use
+the original custom inventory screen.
 
 Polymer's automatic same-port hosting is enabled when no existing
 `config/polymer/auto-host.json` configuration is present. Existing Polymer

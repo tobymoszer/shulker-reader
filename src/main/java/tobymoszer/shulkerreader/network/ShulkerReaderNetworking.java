@@ -1,9 +1,12 @@
 package tobymoszer.shulkerreader.network;
 
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
+import net.minecraft.network.Connection;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -15,6 +18,17 @@ public final class ShulkerReaderNetworking {
 
 	public static boolean supportsNativeClient(ServerPlayer player) {
 		return ServerPlayNetworking.canSend(player, NativeClientPayload.TYPE);
+	}
+
+	public static boolean supportsNativeClient(PacketContext context) {
+		if (context == null) {
+			return false;
+		}
+
+		Connection connection = context.get(PacketContext.CONNECTION);
+		return connection != null
+			&& connection.getPacketListener() instanceof ServerGamePacketListenerImpl listener
+			&& ServerPlayNetworking.canSend(listener, NativeClientPayload.TYPE);
 	}
 
 	public record NativeClientPayload() implements CustomPacketPayload {

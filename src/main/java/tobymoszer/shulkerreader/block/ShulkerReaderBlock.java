@@ -83,6 +83,10 @@ public class ShulkerReaderBlock extends BaseEntityBlock implements PolymerTextur
 
 	@Override
 	public BlockState getPolymerBlockState(BlockState state, PacketContext context) {
+		if (ShulkerReaderNetworking.supportsNativeClient(context)) {
+			return state;
+		}
+
 		if (context == null || !PolymerResourcePackUtils.hasMainPack(context)) {
 			return Blocks.TARGET.defaultBlockState();
 		}

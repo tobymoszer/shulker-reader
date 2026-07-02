@@ -3,7 +3,9 @@ package tobymoszer.shulkerreader;
 import java.util.function.Function;
 
 import net.minecraft.core.Registry;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -36,7 +38,13 @@ public final class ShulkerReaderBlocks {
 
 		if (shouldRegisterItem) {
 			ResourceKey<Item> itemKey = keyOfItem(name);
-			BlockItem blockItem = new BlockItem(block, new Item.Properties().setId(itemKey).useBlockDescriptionPrefix());
+			BlockItem blockItem = new ShulkerReaderBlockItem(
+				block,
+				new Item.Properties()
+					.setId(itemKey)
+					.useBlockDescriptionPrefix()
+					.component(DataComponents.ITEM_NAME, Component.literal("Shulker Reader"))
+			);
 			Registry.register(BuiltInRegistries.ITEM, itemKey, blockItem);
 		}
 

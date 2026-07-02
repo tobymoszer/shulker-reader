@@ -18,22 +18,16 @@
 	"entrypoints": {
 		"main": [
 			"tobymoszer.shulkerreader.ShulkerReader"
-		],
-		"client": [
-			"tobymoszer.shulkerreader.ShulkerReaderClient"
 		]
 	},
-	"mixins": [
-		"shulkerreader.mixins.json",
-		{
-			"config": "shulkerreader.client.mixins.json",
-			"environment": "client"
-		}
-	],
 	"depends": {
 		"fabricloader": ">=0.19.3",
 		"minecraft": "~26.1.2",
 		"java": ">=25",
-		"fabric-api": "*"
+		"fabric-api": "*",
+		"polymer-core": ">=0.16.5",
+		"polymer-resource-pack": ">=0.16.5",
+		"polymer-blocks": ">=0.16.5",
+		"polymer-autohost": ">=0.16.5"
 	}
 }

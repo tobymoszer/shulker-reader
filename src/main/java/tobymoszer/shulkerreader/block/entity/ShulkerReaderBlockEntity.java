@@ -2,13 +2,11 @@ package tobymoszer.shulkerreader.block.entity;
 
 import java.util.List;
 
-import net.fabricmc.fabric.api.menu.v1.ExtendedMenuProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -26,7 +24,7 @@ import net.minecraft.world.level.storage.ValueOutput;
 
 import tobymoszer.shulkerreader.screen.ShulkerReaderScreenHandler;
 
-public class ShulkerReaderBlockEntity extends BaseContainerBlockEntity implements WorldlyContainer, ExtendedMenuProvider<BlockPos> {
+public class ShulkerReaderBlockEntity extends BaseContainerBlockEntity implements WorldlyContainer {
 	private static final int[] AVAILABLE_SLOTS = new int[] { 0 };
 	private static final List<DyeColor> COLOR_ORDER = List.of(
 		DyeColor.RED,
@@ -55,7 +53,7 @@ public class ShulkerReaderBlockEntity extends BaseContainerBlockEntity implement
 
 	@Override
 	protected Component getDefaultName() {
-		return Component.translatable("container.shulkerreader.shulker_reader");
+		return Component.literal("Shulker Reader");
 	}
 
 	@Override
@@ -169,11 +167,6 @@ public class ShulkerReaderBlockEntity extends BaseContainerBlockEntity implement
 		if (this.level != null) {
 			this.level.updateNeighbourForOutputSignal(this.worldPosition, this.getBlockState().getBlock());
 		}
-	}
-
-	@Override
-	public BlockPos getScreenOpeningData(ServerPlayer player) {
-		return this.worldPosition;
 	}
 
 	public static boolean isShulkerBoxItem(ItemStack stack) {

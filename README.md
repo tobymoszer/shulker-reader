@@ -7,10 +7,15 @@ detect a custom-named shulker box.
 
 ## Requirements
 
+The server requires:
+
 - Minecraft 26.1.2
 - Fabric Loader 0.19.3 or newer
 - Fabric API
 - Java 25
+
+Clients only need vanilla Minecraft 26.1.2. Fabric, Fabric API, and Shulker
+Reader do not need to be installed client-side.
 
 ## Signals
 
@@ -47,7 +52,18 @@ Q R Q
 
 ## Installation
 
-Install Fabric Loader and Fabric API for Minecraft 26.1.2, then place the
-Shulker Reader JAR in the `mods` folder.
+Install Fabric Loader and Fabric API on the server, then place the Shulker
+Reader JAR in its `mods` folder. The server automatically generates and hosts
+an optional resource pack containing the custom block and item models. The
+required Polymer components are bundled in the mod JAR.
+
+Clients that accept the pack see the Shulker Reader's custom appearance.
+Clients that decline it can still connect and use the block, which appears as a
+Target block and item instead. The inventory uses Minecraft's standard hopper
+screen so it works without client-side code.
+
+Polymer's automatic same-port hosting is enabled when no existing
+`config/polymer/auto-host.json` configuration is present. Existing Polymer
+hosting settings are preserved.
 
 Licensed under [CC0 1.0](LICENSE).

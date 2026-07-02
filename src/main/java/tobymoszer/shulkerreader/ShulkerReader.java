@@ -1,7 +1,15 @@
 package tobymoszer.shulkerreader;
 
+import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
+import net.fabricmc.loader.api.FabricLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
@@ -11,7 +19,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
 
 import tobymoszer.shulkerreader.block.entity.ShulkerReaderBlockEntities;
-import tobymoszer.shulkerreader.screen.ShulkerReaderScreenHandlers;
 
 public class ShulkerReader implements ModInitializer {
 	public static final String MOD_ID = "shulkerreader";
@@ -27,14 +34,40 @@ public class ShulkerReader implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		// This code runs as soon as Minecraft is in a mod-load-ready state.
-		// However, some things (like resources) may still be uninitialized.
-		// Proceed with mild caution.
-
+		enableAutoHostByDefault();
+		PolymerResourcePackUtils.addModAssets(MOD_ID);
 		ShulkerReaderBlocks.initialize();
 		ShulkerReaderBlockEntities.initialize();
-		ShulkerReaderScreenHandlers.initialize();
 		CreativeModeTabEvents.modifyOutputEvent(REDSTONE_BLOCKS_TAB).register(entries -> entries.accept(ShulkerReaderBlocks.SHULKER_READER));
-		LOGGER.info("Hello Fabric world!");
+		LOGGER.info("Shulker Reader initialized with vanilla-client compatibility");
+	}
+
+	private static void enableAutoHostByDefault() {
+		Path configPath = FabricLoader.getInstance()
+			.getConfigDir()
+			.resolve("polymer")
+			.resolve("auto-host.json");
+		if (Files.exists(configPath)) {
+			return;
+		}
+
+		try {
+			Files.createDirectories(configPath.getParent());
+			Files.writeString(
+				configPath,
+				"""
+				{
+				  "enabled": true,
+				  "required": false,
+				  "type": "polymer:automatic",
+				  "settings": {}
+				}
+				""",
+				StandardCharsets.UTF_8,
+				StandardOpenOption.CREATE_NEW
+			);
+		} catch (IOException exception) {
+			LOGGER.warn("Could not create the default Polymer AutoHost configuration", exception);
+		}
 	}
 }

@@ -1,5 +1,6 @@
 package tobymoszer.shulkerreader.block.entity;
 
+import eu.pb4.polymer.core.api.block.PolymerBlockUtils;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -20,6 +21,6 @@ public final class ShulkerReaderBlockEntities {
 	}
 
 	public static void initialize() {
-		// Ensure the class is loaded.
+		PolymerBlockUtils.registerBlockEntity(SHULKER_READER);
 	}
 }

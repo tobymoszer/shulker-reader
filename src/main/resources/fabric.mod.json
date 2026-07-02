@@ -3,13 +3,14 @@
 	"id": "shulkerreader",
 	"version": "${version}",
 	"name": "Shulker Reader",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "Read an empty shulker box's color or custom name as a comparator signal.",
 	"authors": [
-		"Me!"
+		"tobymoszer"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"homepage": "https://github.com/tobymoszer/shulker-reader",
+		"sources": "https://github.com/tobymoszer/shulker-reader",
+		"issues": "https://github.com/tobymoszer/shulker-reader/issues"
 	},
 	"license": "CC0-1.0",
 	"icon": "assets/shulkerreader/icon.png",
@@ -34,8 +35,5 @@
 		"minecraft": "~26.1.2",
 		"java": ">=25",
 		"fabric-api": "*"
-	},
-	"suggests": {
-		"another-mod": "*"
 	}
 }

@@ -9,12 +9,12 @@ detect a custom-named shulker box.
 
 The server requires:
 
-- Minecraft 26.1.2
+- Minecraft 26.2
 - Fabric Loader 0.19.3 or newer
 - Fabric API
 - Java 25
 
-Clients only need vanilla Minecraft 26.1.2. Fabric, Fabric API, and Shulker
+Clients only need vanilla Minecraft 26.2. Fabric, Fabric API, and Shulker
 Reader do not need to be installed client-side. Installing the mod on the
 client preserves the native Shulker Reader block, item, and inventory screen.
 
